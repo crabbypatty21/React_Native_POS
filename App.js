@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 1. UPDATED TYPE: This now perfectly matches your Supabase table!
-interface Product {
+interface Products {
   id: number | string;
   product_name: string;
   product_price: number;
