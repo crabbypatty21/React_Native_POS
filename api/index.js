@@ -16,7 +16,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // --- ROUTES ---
 
 // 1. Fetch Products from Supabase
-app.get('/Products', async (req, res) => {a
+app.get('/Products', async (req, res) => {
     try {
         // This asks Supabase for all rows in your Products table
         // Note: Make sure the table name exactly matches how it's spelled in Supabase!
