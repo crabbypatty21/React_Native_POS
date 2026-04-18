@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // 1. UPDATED TYPE: This now perfectly matches your Supabase table!
 interface Products {
-  id: number | string;
+  product_id: number | string;
   product_name: string;
   product_price: number;
 }
@@ -14,7 +14,7 @@ export default function App() {
   const [cart, setCart] = useState<Products[]>([]);
 
   useEffect(() => {
-    fetch('http://192.168.1.16:3000/Products') 
+    fetch('http://192.168.55.108:3000/Products') 
       .then(response => response.json())
       .then(data => setProducts(data))
       .catch(error => console.error("Error loading products:", error));
@@ -34,7 +34,7 @@ export default function App() {
       return Alert.alert("Wait!", "The cart is empty.");
     }
 
-    fetch('http://192.168.1.16:3000/checkout', {
+    fetch('http://192.168.55.108:3000/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: cart, total: calculateTotal() })
@@ -56,12 +56,12 @@ export default function App() {
         <FlatList
           data={Products}
           numColumns={2}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.product_id.toString()}
           renderItem={({ item }) => (
             <TouchableOpacity style={styles.productCard} onPress={() => addToCart(item)}>
               {/* 3. Updated to display product_name and product_price */}
               <Text style={styles.productName}>{item.product_name}</Text>
-              <Text style={styles.productPrice}>${item.product_price}</Text>
+              <Text style={styles.productPrice}>₱{item.product_price}</Text>
             </TouchableOpacity>
           )}
         />
