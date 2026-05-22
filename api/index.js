@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js'); 
 
@@ -8,9 +9,9 @@ const PORT = 3000;
 app.use(express.json());
 
 // --- SUPABASE SETUP ---
-// ⚠️ REPLACE THESE STRINGS WITH YOUR ACTUAL URL AND ANON KEY ⚠️
-const supabaseUrl = 'https://scbrjbipnyaxkrlqfvqb.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjYnJqYmlwbnlheGtybHFmdnFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTM1NzIsImV4cCI6MjA4OTU2OTU3Mn0.kLgbwdm8ljVkzdtP8oNZAqWaV58hfeKWmly5GYIN6Qg';
+// Using dotenv to load your credentials securely from the .env file
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // --- ROUTES ---
@@ -19,7 +20,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 app.get('/Products', async (req, res) => {
     try {
         // This asks Supabase for all rows in your Products table
-        // Note: Make sure the table name exactly matches how it's spelled in Supabase!
         const { data, error } = await supabase
             .from('Products') 
             .select('*');
@@ -34,6 +34,41 @@ app.get('/Products', async (req, res) => {
     } catch (err) {
         console.error("Server error:", err);
         res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// 2. Process Checkout
+app.post('/checkout', async (req, res) => {
+    const { items, total } = req.body;
+    
+    try {
+        // 1. Insert a new record into a 'Sales' table
+        const { data: saleData, error: saleError } = await supabase
+            .from('Sales')
+            .insert([{ total_amount: total }])
+            .select();
+
+        if (saleError) throw saleError;
+        
+        const saleId = saleData[0].id;
+
+        // 2. Insert the individual items (soaps/powders) into a 'Sale_Items' table
+        const saleItems = items.map(item => ({
+            sale_id: saleId,
+            product_id: item.product_id, 
+            price_at_time: item.product_price
+        }));
+
+        const { error: itemsError } = await supabase
+            .from('Sale_Items')
+            .insert(saleItems);
+
+        if (itemsError) throw itemsError;
+
+        res.json({ success: true, message: "Sale recorded successfully!" });
+    } catch (err) {
+        console.error("Checkout error:", err);
+        res.status(500).json({ error: "Checkout failed" });
     }
 });
 
